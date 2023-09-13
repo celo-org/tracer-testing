@@ -36,6 +36,8 @@ contract LottreyClubNative {
         uint256 timestamp
     );
     event RandomValueSelected(uint256 randomValue);
+    event RandomUintIdx(uint256 i);
+    event RandomSeedIdx(uint256 i);
     event WinnerSelected(address winner);
 
     constructor(uint256 _depositAmount) {
@@ -102,17 +104,22 @@ contract LottreyClubNative {
     }
 
     function _drawLottrey() private {
-        uint256 randomVal = _getRandomNumber();
-        // bytes32 seed = _getRandomNumber();
-        // seed = keccak256(abi.encodePacked(seed));
-        // uint256 idx = uint256(seed) % issuersLength;
+        bytes32 randBytes = RANDOMNESS_ADDRESS.random();
+        uint256 randomValIdx = uint256(randBytes) % _membersCounters.length;
+        emit RandomUintIdx(randomValIdx);
+
+        bytes32 seed = keccak256(abi.encodePacked(randBytes));
+        uint256 idx = uint256(seed) % _membersCounters.length;
+        emit RandomSeedIdx(idx);
     
 
 
-        emit RandomValueSelected(randomVal);
+        // emit RandomValueSelected(randomVal);
         _winnerAddress = _membersCounters[
             // _getRandomNumber() % _membersCounters.length
-            randomVal % _membersCounters.length
+            // randomVal % _membersCounters.length
+            // randomValIdx
+            idx
         ];
         emit WinnerSelected(_winnerAddress);
         address payable winnerTest = payable(_winnerAddress);
