@@ -104,35 +104,16 @@ contract LottreyClubNative {
     }
 
     function _drawLottrey() private {
-        bytes32 randBytes = RANDOMNESS_ADDRESS.random();
-        uint256 randomValIdx = uint256(randBytes) % _membersCounters.length;
-        emit RandomUintIdx(randomValIdx);
-
-        bytes32 seed = keccak256(abi.encodePacked(randBytes));
-        uint256 idx = uint256(seed) % _membersCounters.length;
-        emit RandomSeedIdx(idx);
-    
-
-
-        // emit RandomValueSelected(randomVal);
+        uint256 randomVal = _getRandomNumber();
+        emit RandomValueSelected(randomVal);
         _winnerAddress = _membersCounters[
             // _getRandomNumber() % _membersCounters.length
-            // randomVal % _membersCounters.length
-            // randomValIdx
-            idx
+            randomVal % _membersCounters.length
         ];
         emit WinnerSelected(_winnerAddress);
         address payable winnerTest = payable(_winnerAddress);
         winnerTest.transfer(prize);
         emit LottreyWinner(winnerTest, prize, block.timestamp);
-
-        // (bool success, ) = _winnerAddress.call{value: prize}("");
-        // if (success) {
-        //     // _resetLottrey();
-        //     // emit LottreyWinner(_winnerAddress, prize, block.timestamp);
-        // } else {
-        //     revert("LottreyClub: Error sending prize to winner");
-        // }
     }
 
     function _resetLottrey() private {
