@@ -18,21 +18,25 @@ contract LotteryBugRepro {
     event RandomValueSelected(uint256 randomValue);
     event WinnerSelected(address winner);
 
-    constructor(uint256 arraySize) {
+    constructor(uint256 additionalArraySlots) {
         // Start with offset for ease of visually distinguishing addresses
         // 4096 offset -> 0th address at 0x0000000000000000000000000000000000001000
         uint160 offset = 4096;
-        for (uint160 i = offset; i < offset + arraySize + 1; i++) {
+        require (additionalArraySlots > 0, "must have at least 2 array slots");
+        for (uint160 i = offset; i < offset + additionalArraySlots + 1; i++) {
             members.push(address(i));
         }
     }
 
     function runLottery() external payable {
         uint256 randomVal = _getRandomNumber();
+        uint256 index = randomVal % members.length;
+        // Reduce flakiness by not using 0th index if that's computed legitimately
+        if (randomVal != 0 && index == 0) {
+            index++;
+        }
         emit RandomValueSelected(randomVal);
-        address _winnerAddress = members[
-            randomVal % members.length
-        ];
+        address _winnerAddress = members[index];
         // Purely for debugging
         winners.push(_winnerAddress);
         emit WinnerSelected(_winnerAddress);
@@ -50,7 +54,6 @@ contract LotteryBugRepro {
     }
 
     function _getRandomNumber() public view returns (uint256) {
-        // return uint256(RANDOMNESS_ADDRESS.getBlockRandomness(block.number));
         return uint256(RANDOMNESS_ADDRESS.random());
     }
 }
